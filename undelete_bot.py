@@ -134,7 +134,7 @@ def post_removal(post_id, token):
 
 
 	post_title = post['title']
-	title = '[#{0}|+{1}|{2}] {}  [/r/{3}]'.format(index, post['score'], post['num_comments'], post['subreddit'])
+	title = '[#{0}|+{1}|{2}] {4}  [/r/{3}]'.format(index, post['score'], post['num_comments'], post['subreddit'], '{}')
 
 	if len(title) - 2 + len(post_title) > 300:
 		title = title.format(post_title[:300 - (len(title) - 2 + 3)] + '...') 
@@ -147,7 +147,7 @@ def post_removal(post_id, token):
 		'kind': 'link',
 		'sr': SUBREDDIT,
 		'title':title,
-		'url': 'https://removeddit.com'
+		'url': post['permalink']
 	}
 	
 	response = requests.post('{}api/submit'.format(API_URL), data=post_data, headers=headers)
