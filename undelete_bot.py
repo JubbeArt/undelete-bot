@@ -41,7 +41,7 @@ def main():
 			print("new token:", token)
 			last_token_update = current_time
 
-		# Check frontpage every minute
+		# Check frontpage every 20 seconds
 		if current_time - last_removals_check >= 20:
 			check_removals(token)
 			last_removals_check = current_time
@@ -132,7 +132,6 @@ def post_removal(post_id, token):
 	if not post or not index:
 		return
 
-
 	post_title = post['title']
 	title = '[#{0}|+{1}|{2}] {4}  [/r/{3}]'.format(index, post['score'], post['num_comments'], post['subreddit'], '{}')
 
@@ -147,16 +146,12 @@ def post_removal(post_id, token):
 		'kind': 'link',
 		'sr': SUBREDDIT,
 		'title':title,
-		'url': post['permalink']
+		'url': 'https://www.reddit.com' + post['permalink']
 	}
 	
-	response = requests.post('{}api/submit'.format(API_URL), data=post_data, headers=headers)
+	r = response = requests.post('{}api/submit'.format(API_URL), data=post_data, headers=headers)
+	print(r.text)
 	already_posted.append(post_id)
-
-	#if not response.errors and 
-
-
-	
 
 
 def get_post_data(post_id):
