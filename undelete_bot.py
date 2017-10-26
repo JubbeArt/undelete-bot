@@ -46,8 +46,8 @@ def main():
 			check_removals(token)
 			last_removals_check = current_time
 
-		# Clear the "already posted" array 2 times a day
-		if current_time - last_already_posted_clear >= 43200: 
+		# Clear the "already posted" array 1 time per day
+		if current_time - last_already_posted_clear >= 86400: 
 			already_posted = []
 			last_already_posted_clear = current_time
 
@@ -75,23 +75,21 @@ def check_removals(token):
 
 	# Need to make sure that they were actually removed and not just moved down from frontpage
 	verified_removals = []
-	
-	# == filter
+
 	for post_id in potential_removals:
 		if is_removed(post_id):
 			verified_removals.append(post_id)
 
 
 	print("potential:", potential_removals)
-	print("verified:", verified_removals)
 	print("subreddit", [get_post_data(x)['subreddit'] for x in potential_removals])
+	print("verified:", verified_removals)
 
 	# Post removals to /r/undelete
 	for removal in verified_removals:
 		post_removal(removal, token)
 
 	# Replace old top posts with new ones
-
 	top_posts = new_top_posts
 	top_unique_ids = new_top_unique_ids 
 
@@ -112,7 +110,8 @@ def is_removed(post_id):
 	if post:
 		url = REDDIT_THREAD.format(post['subreddit'], post_id)
 		response = requests.get(url, headers={'User-Agent': USER_AGENT})
-		#print(response.text)
+		
+		# If the post has the tag <meta name="robots" content="noindex,nofollow" /> it counts as removed
 		meta_tags = etree.parse(StringIO(response.text), parser).find('head').findall('meta')
 
 		for meta_tag in meta_tags:
@@ -149,7 +148,7 @@ def post_removal(post_id, token):
 		'url': 'https://www.reddit.com' + post['permalink']
 	}
 	
-	r = response = requests.post('{}api/submit'.format(API_URL), data=post_data, headers=headers)
+	r = requests.post('{}api/submit'.format(API_URL), data=post_data, headers=headers)
 	print(r.text)
 	already_posted.append(post_id)
 
