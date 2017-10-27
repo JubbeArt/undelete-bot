@@ -3,6 +3,7 @@ import requests
 import time
 from lxml import etree
 from io import StringIO
+import html
 
 parser = etree.HTMLParser()
 	
@@ -72,7 +73,10 @@ def check_removals(token):
 
 	# Diff = was on frontpage 1 min ago but isn't currently
 	potential_removals = top_unique_ids - new_top_unique_ids
-
+	
+	print("potential:", potential_removals)
+	print("subreddit", [get_post_data(x)['subreddit'] for x in potential_removals])
+	
 	# Need to make sure that they were actually removed and not just moved down from frontpage
 	verified_removals = []
 
@@ -80,9 +84,6 @@ def check_removals(token):
 		if is_removed(post_id):
 			verified_removals.append(post_id)
 
-
-	print("potential:", potential_removals)
-	print("subreddit", [get_post_data(x)['subreddit'] for x in potential_removals])
 	print("verified:", verified_removals)
 
 	# Post removals to /r/undelete
@@ -109,15 +110,17 @@ def is_removed(post_id):
 
 	if post:
 		url = REDDIT_THREAD.format(post['subreddit'], post_id)
-		response = requests.get(url, headers={'User-Agent': USER_AGENT})
 		
-		# If the post has the tag <meta name="robots" content="noindex,nofollow" /> it counts as removed
-		meta_tags = etree.parse(StringIO(response.text), parser).find('head').findall('meta')
+		try:
+			response = requests.get(url, headers={'User-Agent': USER_AGENT})
+			# If the post has the tag <meta name="robots" content="noindex,nofollow" /> it counts as removed
+			meta_tags = etree.parse(StringIO(response.text), parser).find('head').findall('meta')
 
-		for meta_tag in meta_tags:
-			if meta_tag.get('name') == 'robots':
-				return True
-
+			for meta_tag in meta_tags:
+				if meta_tag.get('name') == 'robots':
+					return True
+		except:
+			pass
 	return False
 
 
@@ -131,7 +134,7 @@ def post_removal(post_id, token):
 	if not post or not index:
 		return
 
-	post_title = post['title']
+	post_title = html.unescape(post['title'])
 	title = '[#{0}|+{1}|{2}] {4}  [/r/{3}]'.format(index, post['score'], post['num_comments'], post['subreddit'], '{}')
 
 	if len(title) - 2 + len(post_title) > 300:
