@@ -81,7 +81,7 @@ def check_removals(token):
 	verified_removals = []
 
 	for post_id in potential_removals:
-		if is_removed(post_id):
+		if is_removed(post_id) and not is_porn(post_id, token):
 			verified_removals.append(post_id)
 
 	print("verified:", verified_removals)
@@ -98,6 +98,18 @@ def check_removals(token):
 def get_top_posts(token):
 	headers = {'Authorization': 'bearer {}'.format(token), 'User-Agent': USER_AGENT}
 	return requests.get('{}r/all?limit=100'.format(API_URL), headers=headers).json()['data']['children']
+
+def is_porn(post_id, token):
+	subreddit = get_post_data(post_id)['subreddit']
+
+	nsfw_but_not_porn = ['ImGoingToHellForThis','MorbidReality','watchpeopledie','GreatApes','Gore','DarkNetMarkets']
+
+	if subreddit in nsfw_but_not_porn:
+		return False
+
+	headers = {'Authorization': 'bearer {}'.format(token), 'User-Agent': USER_AGENT}
+	response = requests.get('{}r/{}/about'.format(API_URL, subreddit), headers=headers).json()
+	return response['data']['over18']
 
 
 def get_unique_ids(posts):
