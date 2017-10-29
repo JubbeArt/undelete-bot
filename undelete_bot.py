@@ -39,7 +39,7 @@ def main():
 		# update token every 50 minutes (token last 1 hour)
 		if current_time - last_token_update >= 3000:
 			token = get_token()
-			print("new token:", token)
+			#print("new token:", token)
 			last_token_update = current_time
 
 		# Check frontpage every 20 seconds
@@ -51,6 +51,8 @@ def main():
 		if current_time - last_already_posted_clear >= 86400: 
 			already_posted = []
 			last_already_posted_clear = current_time
+
+		time.sleep(1)
 
 def get_token():
 	client_auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
@@ -74,8 +76,8 @@ def check_removals(token):
 	# Diff = was on frontpage 1 min ago but isn't currently
 	potential_removals = top_unique_ids - new_top_unique_ids
 	
-	print("potential:", potential_removals)
-	print("subreddit", [get_post_data(x)['subreddit'] for x in potential_removals])
+	#print("potential:", potential_removals, flush=True)
+	#print("subreddit", [get_post_data(x)['subreddit'] for x in potential_removals], flush=True)
 	
 	# Need to make sure that they were actually removed and not just moved down from frontpage
 	verified_removals = []
@@ -84,7 +86,7 @@ def check_removals(token):
 		if is_removed(post_id) and not is_porn(post_id, token):
 			verified_removals.append(post_id)
 
-	print("verified:", verified_removals)
+	#print("verified:", verified_removals, flush=True)
 
 	# Post removals to /r/undelete
 	for removal in verified_removals:
@@ -109,6 +111,10 @@ def is_porn(post_id, token):
 
 	headers = {'Authorization': 'bearer {}'.format(token), 'User-Agent': USER_AGENT}
 	response = requests.get('{}r/{}/about'.format(API_URL, subreddit), headers=headers).json()
+
+	if response['data']['over18']:
+		print(subreddit, flush=True)
+
 	return response['data']['over18']
 
 
@@ -164,7 +170,7 @@ def post_removal(post_id, token):
 	}
 	
 	r = requests.post('{}api/submit'.format(API_URL), data=post_data, headers=headers)
-	print(r.text)
+	print(r.text, flush=True)
 	already_posted.append(post_id)
 
 
