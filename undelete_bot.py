@@ -4,6 +4,7 @@ import time
 from lxml import etree
 from io import StringIO
 import html
+from lxml.cssselect import CSSSelector
 
 parser = etree.HTMLParser()
 	
@@ -39,7 +40,6 @@ def main():
 		# update token every 50 minutes (token last 1 hour)
 		if current_time - last_token_update >= 3000:
 			token = get_token()
-			#print("new token:", token)
 			last_token_update = current_time
 
 		# Check frontpage every 20 seconds
@@ -76,9 +76,6 @@ def check_removals(token):
 	# Diff = was on frontpage 1 min ago but isn't currently
 	potential_removals = top_unique_ids - new_top_unique_ids
 	
-	#print("potential:", potential_removals, flush=True)
-	#print("subreddit", [get_post_data(x)['subreddit'] for x in potential_removals], flush=True)
-	
 	# Need to make sure that they were actually removed and not just moved down from frontpage
 	verified_removals = []
 
@@ -86,8 +83,7 @@ def check_removals(token):
 		if is_removed(post_id) and not is_porn(post_id, token):
 			verified_removals.append(post_id)
 
-	#print("verified:", verified_removals, flush=True)
-
+	
 	# Post removals to /r/undelete
 	for removal in verified_removals:
 		post_removal(removal, token)
@@ -132,13 +128,20 @@ def is_removed(post_id):
 		try:
 			response = requests.get(url, headers={'User-Agent': USER_AGENT})
 			# If the post has the tag <meta name="robots" content="noindex,nofollow" /> it counts as removed
-			meta_tags = etree.parse(StringIO(response.text), parser).find('head').findall('meta')
-
-			for meta_tag in meta_tags:
+			tree = etree.parse(StringIO(response.text), parser)
+			print(url)
+			for meta_tag in tree.find('head').findall('meta'):
 				if meta_tag.get('name') == 'robots':
-					return True
-		except:
-			pass
+					select_author = CSSSelector('.tagline .author')
+					author_elements = select_author(tree.find('body'))
+					
+					if author_elements and len(author_elements) >= 1:
+						if author_elements[0].text != '[deleted]':
+							return True
+					else:
+						True
+		except Error as e:
+			print('error:', e, flush=True)
 	return False
 
 
