@@ -1,1 +1,18 @@
-undelete.service
+#/etc/systemd/system/undelete.service
+[Unit]
+Description=Undelete
+After=multi-user.target
+StartLimitInterval=0
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /var/www/undelete/undelete_bot.py
+WorkingDirectory=/var/www/undelete
+StandardOutput=journal
+StandardError=journal
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+
