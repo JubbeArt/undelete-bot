@@ -7,7 +7,7 @@ import html
 from lxml.cssselect import CSSSelector
 
 parser = etree.HTMLParser()
-	
+
 USER_AGENT = 'Python:{}:v{} (by /u/{})'.format(APP_NAME, VERSION, USERNAME)
 TOKEN_URL = 'https://www.reddit.com/api/v1/access_token'
 API_URL = 'https://oauth.reddit.com/'
@@ -48,7 +48,7 @@ def main():
 			last_removals_check = current_time
 
 		# Clear the "already posted" array 1 time per day
-		if current_time - last_already_posted_clear >= 86400: 
+		if current_time - last_already_posted_clear >= 86400:
 			already_posted = []
 			last_already_posted_clear = current_time
 
@@ -57,14 +57,20 @@ def main():
 def get_token():
 	client_auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
 	post_data = {
-		'grant_type': 'password', 
-		'username': USERNAME, 
+		'grant_type': 'password',
+		'username': USERNAME,
 		'password': PASSWORD
 	}
 	headers = {"User-Agent": USER_AGENT}
 	response = requests.post(TOKEN_URL, auth=client_auth, data=post_data, headers=headers)
+
+	try:
+		response.json()
+	except:
+		print('COULD NOT PARSE TOKEN', response.text, flush=True)
+
 	return response.json()['access_token']
-	
+
 
 def check_removals(token):
 	global top_posts, top_unique_ids
@@ -75,7 +81,8 @@ def check_removals(token):
 
 	# Diff = was on frontpage 1 min ago but isn't currently
 	potential_removals = top_unique_ids - new_top_unique_ids
-	
+
+	#print(potential_removals, flush=True)
 	# Need to make sure that they were actually removed and not just moved down from frontpage
 	verified_removals = []
 
@@ -83,19 +90,25 @@ def check_removals(token):
 		if is_removed(post_id) and not is_porn(post_id, token):
 			verified_removals.append(post_id)
 
-	
+
 	# Post removals to /r/undelete
 	for removal in verified_removals:
 		post_removal(removal, token)
 
 	# Replace old top posts with new ones
 	top_posts = new_top_posts
-	top_unique_ids = new_top_unique_ids 
+	top_unique_ids = new_top_unique_ids
 
 
 def get_top_posts(token):
 	headers = {'Authorization': 'bearer {}'.format(token), 'User-Agent': USER_AGENT}
-	return requests.get('{}r/all?limit=100'.format(API_URL), headers=headers).json()['data']['children']
+	response = requests.get('{}r/all?limit=100'.format(API_URL), headers=headers)
+
+	try:
+		response.json()
+	except:
+		print('COULD NOT PARSE TOP POSTS', response.text, flush=True)
+	return response.json()['data']['children']
 
 def is_porn(post_id, token):
 	subreddit = get_post_data(post_id)['subreddit']
@@ -124,17 +137,17 @@ def is_removed(post_id):
 
 	if post:
 		url = REDDIT_THREAD.format(post['subreddit'], post_id)
-		
+
 		try:
 			response = requests.get(url, headers={'User-Agent': USER_AGENT})
 			# If the post has the tag <meta name="robots" content="noindex,nofollow" /> it counts as removed
 			tree = etree.parse(StringIO(response.text), parser)
-			print(url)
+			#print(url)
 			for meta_tag in tree.find('head').findall('meta'):
 				if meta_tag.get('name') == 'robots':
 					select_author = CSSSelector('.tagline .author')
 					author_elements = select_author(tree.find('body'))
-					
+
 					if author_elements and len(author_elements) >= 1:
 						if author_elements[0].text != '[deleted]':
 							return True
@@ -171,7 +184,7 @@ def post_removal(post_id, token):
 		'title':title,
 		'url': 'https://www.reddit.com' + post['permalink']
 	}
-	
+
 	r = requests.post('{}api/submit'.format(API_URL), data=post_data, headers=headers)
 	print(r.text, flush=True)
 	already_posted.append(post_id)
@@ -179,7 +192,7 @@ def post_removal(post_id, token):
 
 def get_post_data(post_id):
 	global top_posts
-	
+
 	for thread in top_posts:
 		if thread['data']['id'] == post_id:
 			return thread['data']
