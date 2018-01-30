@@ -1,4 +1,4 @@
-from secret import *
+from longtail_secret import *
 import requests
 import time
 from lxml import etree
