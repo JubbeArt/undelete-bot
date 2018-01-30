@@ -112,7 +112,7 @@ def get_top_posts(token):
 		response = requests.get('{}r/all?limit=100&after={}'.format(API_URL, after), headers=headers)
 		json = response.json()
 		ids.extend(json['data']['children'])
-		after = first_json['data']['after']
+		after = json['data']['after']
 		
 	return ids
 
