@@ -93,6 +93,7 @@ def check_removals(token):
 	# Post removals to /r/undelete
 	for removal in verified_removals:
 		post_removal(removal, token)
+		time.sleep(1)
 
 	# Replace old top posts with new ones
 	top_posts = new_top_posts
@@ -107,14 +108,14 @@ def get_top_posts(token):
 	ids = first_json['data']['children']
 
 	after = first_json['data']['after']
-	
+
 	for i in range(9):
 		response = requests.get('{}r/all?limit=100&after={}'.format(API_URL, after), headers=headers)
 		json = response.json()
 		ids.extend(json['data']['children'])
 		after = json['data']['after']
 		time.sleep(1)
-		
+
 	return ids
 
 def is_porn(post_id, token):
