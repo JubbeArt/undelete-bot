@@ -42,8 +42,8 @@ def main():
 			token = get_token()
 			last_token_update = current_time
 
-		# Check frontpage every 40 seconds
-		if current_time - last_removals_check >= 40:
+		# Check frontpage every 60 seconds
+		if current_time - last_removals_check >= 60:
 			check_removals(token)
 			last_removals_check = current_time
 
@@ -113,6 +113,7 @@ def get_top_posts(token):
 		json = response.json()
 		ids.extend(json['data']['children'])
 		after = json['data']['after']
+		time.sleep(1)
 		
 	return ids
 
