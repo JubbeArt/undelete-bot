@@ -1,6 +1,6 @@
-#/etc/systemd/system/undelete.service
+#/etc/systemd/system/longtail.service
 [Unit]
-Description=Undelete
+Description=Longtail
 After=multi-user.target
 StartLimitInterval=0
 
