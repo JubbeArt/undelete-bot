@@ -1,9 +1,0 @@
-USERNAME = ''
-PASSWORD = ''
-SUBREDDIT = ''
-
-APP_NAME = ''
-VERSION = '1.0'
-
-CLIENT_ID = ''
-CLIENT_SECRET = ''

@@ -1,13 +1,13 @@
 # Quick Start
 
 * Go to https://www.reddit.com/prefs/apps/ and create a new **script** app.
-* Enter all relevant information to `praw.py`
+* Enter all relevant information to `praw.ini`
 * Install dependencies (praw and requests), e.g. with [virtualenv](https://virtualenv.pypa.io/en/stable/) and test script with:
 ```
 # Create virtual enviorment for python
 virtualenv .venv
 
-# Activate enviorment and install requirements (praw and requests)
+# Activate enviorment and install requirements
 source .venv/bin/activate
 pip install -r requirements.txt
 

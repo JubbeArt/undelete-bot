@@ -6,7 +6,7 @@ StartLimitInterval=0
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /var/www/undelete/longtail_bot.py
+ExecStart=/var/www/undelete/.venv/bin/python /var/www/undelete/longtail/longtail_bot.py
 WorkingDirectory=/var/www/undelete
 StandardOutput=journal
 StandardError=journal

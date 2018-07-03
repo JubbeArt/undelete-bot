@@ -21,18 +21,19 @@ def get_top_ids():
   return [submission.id for submission in reddit.subreddit('all').hot(limit=100)]
 
 # Initial fetch for the thread-IDs of top 100 posts of /r/all
-ids = set(get_top_ids())
+ids_list = get_top_ids()
+ids = set(ids_list)
 
 # Ugly hack to check if a post is removed
 # - It checks if the thread has a meta-tag for robots to not index the page...
 def is_removed(thread_id, subreddit):
-  url = 'https://www.reddit.com/r/{}/comments/{}/'.format(subreddit, thread_id)
+  url = 'https://old.reddit.com/r/{}/comments/{}/'.format(subreddit, thread_id)
   user_agent = 'frontpagewatch by /u/Frontpage-Watch'
-  response = requests.get(url, headers={'User-Agent': user_agent})
+  response = requests.get(url, headers={'user-agent': user_agent})
   return '<meta name="robots" content="noindex,nofollow' in response.text
 
 def check_removals():
-  global ids
+  global ids, ids_list
 
   new_ids_list = get_top_ids()
   new_ids = set(new_ids_list)
@@ -56,7 +57,7 @@ def check_removals():
       posted_ids.append(thread_id)
 
       # For title of the post on /r/undelete
-      index = new_ids_list.index(thread_id) + 1
+      index = ids_list.index(thread_id) + 1
       score = submission.score
       number_of_comments = submission.num_comments
       post_title = submission.title
@@ -75,9 +76,10 @@ def check_removals():
       print('----DELETED AND POSTED!!!!!----', url)
     else:
       print('--NOT DELTED:','https://www.reddit.com{}'.format(submission.permalink))
+  
   ids = new_ids
-
+  ids_list = new_ids_list
 
 while True:
-  sleep(60*5)
+  sleep(60)
   check_removals()
